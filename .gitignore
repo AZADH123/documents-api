@@ -1,31 +1,15 @@
-
-# Python cache files
-__pycache__/
-*.py[cod]
-*$py.class
+@"
 
 # Virtual environments
 .venv/
 venv/
 env/
 
-# Environment variables and secrets
+# Python generated files
+__pycache__/
+*.py[cod]
+
+# Secrets and test cache
 .env
-.env.*
-!.env.example
-
-# Testing and coverage
 .pytest_cache/
-.coverage
-htmlcov/
-
-# IDE and editor
-.vscode/
-.idea/
-
-# Operating system files
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
+"@ | Add-Content .gitignore
