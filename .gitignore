@@ -1,0 +1,15 @@
+@"
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Python generated files
+__pycache__/
+*.py[cod]
+
+# Secrets and test cache
+.env
+.pytest_cache/
+"@ | Add-Content .gitignore
