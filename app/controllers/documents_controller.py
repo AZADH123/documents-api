@@ -13,7 +13,6 @@ class DocumentsController:
 
     def __init__(self, service: DocumentService) -> None:
         self._service = service
-
     @staticmethod
     def _to_response(document: Document) -> DocumentResponse:
         return DocumentResponse(
