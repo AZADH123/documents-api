@@ -1,0 +1,25 @@
+# ====================================================================
+# Production dependencies for the Documents API
+# Install with:  pip install -r requirements.txt
+# ====================================================================
+
+# --- Web framework ---------------------------------------------------
+# FastAPI: a modern, fast web framework for building APIs with Python.
+# It uses Python type hints to automatically validate requests and
+# generate interactive docs at /docs.
+fastapi==0.115.6
+
+# --- ASGI server -----------------------------------------------------
+# Uvicorn: the lightning-fast server that actually runs our FastAPI
+# app. The [standard] extra bundles useful speedups (uvloop, httptools).
+uvicorn[standard]==0.34.0
+
+# --- Data validation -------------------------------------------------
+# Pydantic: FastAPI uses this under the hood. We use it to declare our
+# request/response shapes (think of it like Zod in TypeScript).
+pydantic==2.10.4
+pydantic-settings==2.7.1
+
+# --- Env file support ------------------------------------------------
+# Lets us load configuration from a .env file.
+python-dotenv==1.0.1
