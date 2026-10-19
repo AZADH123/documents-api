@@ -1,0 +1,17 @@
+# ====================================================================
+# Development dependencies (installed on top of requirements.txt)
+# Install with:  pip install -r requirements-dev.txt
+# (this file already pulls in everything from requirements.txt)
+# ====================================================================
+
+-r requirements.txt
+
+# --- Testing ---------------------------------------------------------
+# pytest: the test runner
+pytest==8.3.4
+
+# pytest-asyncio: lets us write async tests if needed
+pytest-asyncio==0.25.2
+
+# httpx: HTTP client used by FastAPI's TestClient (used in integration tests)
+httpx==0.28.1
