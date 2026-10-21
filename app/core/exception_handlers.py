@@ -2,32 +2,25 @@
 ====================================================================
 app/core/exception_handlers.py — turn domain errors into HTTP.
 ====================================================================
-
-The service layer raises DOMAIN exceptions (e.g. DocumentNotFoundError)
-because it doesn't know it's being called from HTTP. This file is
-the bridge: it catches those exceptions and converts them into
-JSON HTTP responses with a consistent error envelope.
-
-Example error response:
-    {
-      "error": "DocumentNotFoundError",
-      "message": "Document with id 'abc' not found"
-    }
 """
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from app.domain.errors import (
+    AuthError,
     DocumentError,
     DocumentNotFoundError,
     DuplicateDocumentError,
+    InvalidCredentialsError,
+    InvalidTokenError,
+    UserAlreadyExistsError,
+    UserNotFoundError,
 )
 from app.schemas.errors import ErrorResponse
 
 
-def _envelope(exc: DocumentError, status_code: int) -> JSONResponse:
-    """Build a JSONResponse from a domain error."""
+def _envelope(exc, status_code: int) -> JSONResponse:
     return JSONResponse(
         status_code=status_code,
         content=ErrorResponse(
@@ -38,8 +31,7 @@ def _envelope(exc: DocumentError, status_code: int) -> JSONResponse:
 
 
 def add_exception_handlers(app: FastAPI) -> None:
-    """Register all exception handlers on the app."""
-
+    # ---- Document errors ----
     @app.exception_handler(DocumentNotFoundError)
     async def _not_found(_: Request, exc: DocumentNotFoundError):
         return _envelope(exc, status_code=404)
@@ -49,6 +41,26 @@ def add_exception_handlers(app: FastAPI) -> None:
         return _envelope(exc, status_code=409)
 
     @app.exception_handler(DocumentError)
-    async def _base_error(_: Request, exc: DocumentError):
-        # Catch-all for any other DocumentError subclass -> 400 Bad Request.
+    async def _base_doc(_: Request, exc: DocumentError):
+        return _envelope(exc, status_code=400)
+
+    # ---- Auth errors ----
+    @app.exception_handler(InvalidCredentialsError)
+    async def _bad_creds(_: Request, exc: InvalidCredentialsError):
+        return _envelope(exc, status_code=401)
+
+    @app.exception_handler(InvalidTokenError)
+    async def _bad_token(_: Request, exc: InvalidTokenError):
+        return _envelope(exc, status_code=401)
+
+    @app.exception_handler(UserAlreadyExistsError)
+    async def _dup_user(_: Request, exc: UserAlreadyExistsError):
+        return _envelope(exc, status_code=409)
+
+    @app.exception_handler(UserNotFoundError)
+    async def _user_not_found(_: Request, exc: UserNotFoundError):
+        return _envelope(exc, status_code=404)
+
+    @app.exception_handler(AuthError)
+    async def _base_auth(_: Request, exc: AuthError):
         return _envelope(exc, status_code=400)

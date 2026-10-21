@@ -1,28 +1,18 @@
 """
 ====================================================================
-app/repositories/in_memory.py — dict-backed repository.
+app/repositories/in_memory.py — dict-backed repositories.
 ====================================================================
-
-This is the simplest possible implementation of DocumentRepository:
-it stores documents in a Python dict that lives in process memory.
-
-Why bother? Because it lets us build and test the ENTIRE app
-end-to-end without standing up a database. Once the rest of the
-app works, we can swap this for a real DB-backed repository and
-nothing else has to change.
-
-⚠️ Memory is wiped on every restart. Don't use this in production.
 """
 
-from app.domain.entities import Document
+from app.domain.entities import Document, User
 from app.domain.errors import DuplicateDocumentError
 
 
+# --------------------------------------------------------------------
+# Document repository
+# --------------------------------------------------------------------
 class InMemoryDocumentRepository:
-    """Dict-backed implementation of DocumentRepository."""
-
     def __init__(self) -> None:
-        # Keys are document ids, values are Document entities.
         self._store: dict[str, Document] = {}
 
     def add(self, document: Document) -> None:
@@ -36,7 +26,6 @@ class InMemoryDocumentRepository:
         return self._store.get(document_id)
 
     def list_all(self) -> list[Document]:
-        # Return a copy so callers can't mutate our internal store.
         return list(self._store.values())
 
     def delete(self, document_id: str) -> bool:
@@ -47,3 +36,34 @@ class InMemoryDocumentRepository:
 
     def exists(self, document_id: str) -> bool:
         return document_id in self._store
+
+
+# --------------------------------------------------------------------
+# User repository
+# --------------------------------------------------------------------
+class InMemoryUserRepository:
+    """
+    Stores users in a dict, with two extra indexes (by email and by
+    username) so login/registration lookups are O(1).
+    """
+
+    def __init__(self) -> None:
+        self._by_id: dict[str, User] = {}
+        self._by_email: dict[str, str] = {}      # email -> user_id
+        self._by_username: dict[str, str] = {}   # username -> user_id
+
+    def add(self, user: User) -> None:
+        self._by_id[user.id] = user
+        self._by_email[user.email] = user.id
+        self._by_username[user.username] = user.id
+
+    def get(self, user_id: str) -> User | None:
+        return self._by_id.get(user_id)
+
+    def find_by_email(self, email: str) -> User | None:
+        user_id = self._by_email.get(email)
+        return self._by_id.get(user_id) if user_id else None
+
+    def find_by_username(self, username: str) -> User | None:
+        user_id = self._by_username.get(username)
+        return self._by_id.get(user_id) if user_id else None

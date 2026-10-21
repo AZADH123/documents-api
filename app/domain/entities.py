@@ -1,19 +1,7 @@
 """
 ====================================================================
-app/domain/entities.py — the core business object.
+app/domain/entities.py — domain objects (framework-free).
 ====================================================================
-
-A "domain entity" is a plain Python object that represents a real
-concept in our business. Here: a Document.
-
-It is intentionally framework-free:
-  - No FastAPI imports
-  - No Pydantic
-  - No database drivers
-
-Why? Because the entity should outlive any web framework or DB.
-If you change from FastAPI to Flask, or from Postgres to Mongo,
-the Document entity stays exactly the same.
 """
 
 from __future__ import annotations
@@ -24,28 +12,22 @@ import uuid
 
 
 def _now() -> datetime:
-    """Current UTC time. Wrapped so tests can mock it if needed."""
     return datetime.now(timezone.utc)
 
 
+# --------------------------------------------------------------------
+# Document
+# --------------------------------------------------------------------
 @dataclass
 class Document:
-    """
-    The Document entity.
-
-    `@dataclass` auto-generates __init__, __repr__, __eq__ for us.
-    """
-
     id: str
     title: str
     content: str
     created_at: datetime
     updated_at: datetime
 
-    # ---- factory ----------------------------------------------------
     @staticmethod
     def new(title: str, content: str) -> "Document":
-        """Create a brand-new Document with a generated id and timestamps."""
         now = _now()
         return Document(
             id=str(uuid.uuid4()),
@@ -55,14 +37,38 @@ class Document:
             updated_at=now,
         )
 
-    # ---- mutations --------------------------------------------------
     def update(self, title: str | None = None, content: str | None = None) -> None:
-        """
-        Patch the document. Only fields that are not None get updated.
-        Always bumps `updated_at`.
-        """
         if title is not None:
             self.title = title
         if content is not None:
             self.content = content
         self.updated_at = _now()
+
+
+# --------------------------------------------------------------------
+# User
+# --------------------------------------------------------------------
+@dataclass
+class User:
+    """
+    A registered user. Stores a HASHED password — never the plaintext.
+
+    Like Document, this is plain Python with no FastAPI / DB imports,
+    so it can be reused from anywhere (CLI, tests, background jobs).
+    """
+
+    id: str
+    username: str
+    email: str
+    hashed_password: str
+    created_at: datetime
+
+    @staticmethod
+    def new(username: str, email: str, hashed_password: str) -> "User":
+        return User(
+            id=str(uuid.uuid4()),
+            username=username,
+            email=email,
+            hashed_password=hashed_password,
+            created_at=_now(),
+        )
